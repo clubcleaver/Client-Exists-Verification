@@ -11,17 +11,33 @@ const sequelize = new Sequelize(process.env.DB_URL)
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 const Client = sequelize.define('Client', {
-    clientId: DataTypes.UUID,
+    clientId: {
+        type: DataTypes.UUID,
+        primaryKey: true
+    },
     firstName: DataTypes.STRING,
+    lastName: DataTypes.STRING,
     dob: DataTypes.STRING,
     status: DataTypes.BOOLEAN,
     download: DataTypes.BLOB('long')
 });
 
 const User = sequelize.define('User', {
-    userId: DataTypes.UUID,
-    username: DataTypes.STRING,
-    password: DataTypes.STRING
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        
+    },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        primaryKey: true,
+        
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false
+    }
 })
 
 // connection to Database
