@@ -1,9 +1,8 @@
 require('dotenv').config()
 // console.log(process.env)
 const express = require("express");
-const { v4 } = require("uuid");
 const app = express();
-const { Client, User, sequelize, dbConnect } = require("./db.js");
+const { sequelize, dbConnect } = require("./db.js");
 
 // Data Router
 const dataRouter = require("./dataRouter");
