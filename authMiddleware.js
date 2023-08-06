@@ -2,31 +2,48 @@ require("dotenv").config();
 const { User } = require("./db.js");
 const jwt = require("jsonwebtoken");
 
-const authCheck = async function (req, res, next) {
+const authCheck = (req, res, next) => {
   const token = req.headers.authorization;
-  const tokenDecoded = await jwt.verify(
+  jwt.verify(
     token.split(" ")[1],
-    process.env.TOKEN_KEY
-  );
-  if (tokenDecoded) {
-    const foundUser = await User.findOne({
-      where: {
-        email: tokenDecoded.email,
-      },
-    });
-    if (foundUser) {
-      req.userAuth = true;
-      next();
-    } else {
-      res.send({
-        success: false,
-        message: "User Not Found ... Contact Admin, User may be deleted.",
-      });
+    process.env.TOKEN_KEY,
+    async (err, decoded) => {
+      if (err) {
+        req.userAuth = false;
+        next();
+      } else {
+        const foundUser = await User.findOne({
+          where: {
+            email: decoded.email,
+          },
+        });
+        if (foundUser) {
+          req.userAuth = true;
+          next();
+        } else {
+          req.userAuth = false;
+          next();
+        }
+      }
     }
-  } else {
-    req.userAuth = false;
-    next();
-  }
+  );
+  // if (tokenDecoded) {
+  //   const foundUser = await User.findOne({
+  //     where: {
+  //       email: tokenDecoded.email,
+  //     },
+  //   });
+  //   if (foundUser) {
+  //     req.userAuth = true;
+  //     next();
+  //   } else {
+  //     req.userAuth = false;
+  //     next();
+  //   }
+  // } else {
+  //   req.userAuth = false;
+  //   next();
+  // }
 };
 
 module.exports = {

@@ -7,10 +7,10 @@ const { authCheck } = require("./authMiddleware");
 // get Client
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 router.get("/", async (req, res) => {
-  const name = req.query.name;
+  // const name = req.query.name;
   const clientId = req.query.clientId;
-  if (name || clientId) {
-    const foundUser = await User.findOne({
+  if (clientId) {
+    const foundUser = await Client.findOne({
       where: { clientId: clientId.trim() },
     });
     if (foundUser) {
@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
     } else {
       res.send({
         success: false,
-        message: "User not found",
+        message: "Client not found",
       });
     }
   } else {
@@ -35,8 +35,8 @@ router.post("/", authCheck, async (req, res) => {
   if (req.userAuth) {
     const { firstName, lastName, dob, status, document } = req.body;
     if (firstName && lastName && dob && status && document) {
-      const createdUser = await User.create({
-        clientId: nanoid(8),
+      const createdUser = await Client.create({
+        clientId: "IAC-" + nanoid(6),
         firstName: firstName,
         lastName: lastName,
         dob: dob,
@@ -59,7 +59,8 @@ router.post("/", authCheck, async (req, res) => {
     } else {
       res.send({
         status: false,
-        message: "Invalid User Schema ..., Check Client details or Contact Admin",
+        message:
+          "Invalid User Schema ..., Check Client details or Contact Admin",
       });
     }
   } else {
@@ -75,31 +76,42 @@ router.patch("/", (req, res) => {
 
 // Delete Client
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-router.delete("/", async (req, res) => {
+router.delete("/", authCheck, async (req, res) => {
   if (req.userAuth) {
     const { clientId } = req.body;
-    const foundUser = await User.findOne({
-      where: {
-        clientId: userId,
-      },
-    });
-    if (foundUser) {
-      await User.destroy({where: {clientId: clientId},}).catch((e) => {res.send({success: false, message: "Could not remove User, DB Error, Please Contact Admin"})})
-      res.send({success: true, message: "User deleted successfully"})
-    } else {
-      res.send({
-        success: false,
-        message:
-          "User not found, Please check the Client ID or contact Admin ...",
+    if (clientId) {
+      const deletedUser = await Client.findOne({
+        where: {
+          clientId: clientId.trim(),
+        },
+      }).catch((e) => {
+        res.send({
+          success: false,
+          message: "Database Error, Could Not Delete Client",
+          error: e,
+        });
       });
+      if (deletedUser) {
+        await Client.destroy({ where: { clientId: clientId.trim() } }).catch(
+          (e) => {
+            console.log(e);
+            res.send({ success: false, message: "Unable to delete client" });
+          }
+        );
+        res.send({
+          success: true,
+          message: "succesfully deleted Client",
+          Client: deletedUser,
+        });
+      } else {
+        res.send({success: false, message: "Client Not found, No Data deleted"})
+      }
+    } else {
+      send.send({ success: false, message: "Invalid Client ID" });
     }
   } else {
-    res.send({
-      success: false,
-      message: "User Not Authorized ... Please Contact Admin",
-    });
+    res.send({ success: false, message: "User Not Authorized" });
   }
-  res.send("Delete entry");
 });
 
 module.exports = router;
